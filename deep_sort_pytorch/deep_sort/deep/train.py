@@ -11,7 +11,7 @@ import torchvision
 from model import Net
 
 parser = argparse.ArgumentParser(description="Train on market1501")
-parser.add_argument("--data-dir", default='data', type=str)
+parser.add_argument("--data-dir", default='data/Market-1501/pytorch/', type=str)
 parser.add_argument("--no-cuda", action="store_true")
 parser.add_argument("--gpu-id", default=0, type=int)
 parser.add_argument("--lr", default=0.1, type=float)
@@ -28,7 +28,7 @@ if torch.cuda.is_available() and not args.no_cuda:
 # data loading
 root = args.data_dir
 train_dir = os.path.join(root, "train")
-test_dir = os.path.join(root, "test")
+test_dir = os.path.join(root, "val")
 transform_train = torchvision.transforms.Compose([
     torchvision.transforms.RandomCrop((128, 64), padding=4),
     torchvision.transforms.RandomHorizontalFlip(),
@@ -194,7 +194,7 @@ def lr_decay():
 
 
 def main():
-    for epoch in range(start_epoch, start_epoch+40):
+    for epoch in range(start_epoch, start_epoch+30):
         train_loss, train_err = train(epoch)
         test_loss, test_err = test(epoch)
         draw_curve(epoch, train_loss, train_err, test_loss, test_err)
