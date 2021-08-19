@@ -8,7 +8,7 @@ import os
 from model import Net
 
 parser = argparse.ArgumentParser(description="Train on market1501")
-parser.add_argument("--data-dir", default='data', type=str)
+parser.add_argument("--data-dir", default='data/Market-1501/pytorch/', type=str)
 parser.add_argument("--no-cuda", action="store_true")
 parser.add_argument("--gpu-id", default=0, type=int)
 args = parser.parse_args()
@@ -29,21 +29,44 @@ transform = torchvision.transforms.Compose([
     torchvision.transforms.Normalize(
         [0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])
+query_datasets = torchvision.datasets.ImageFolder(query_dir, transform=transform)
 queryloader = torch.utils.data.DataLoader(
-    torchvision.datasets.ImageFolder(query_dir, transform=transform),
+    query_datasets,
     batch_size=64, shuffle=False
 )
+
+gallery_datasets = torchvision.datasets.ImageFolder(gallery_dir, transform=transform)
 galleryloader = torch.utils.data.DataLoader(
-    torchvision.datasets.ImageFolder(gallery_dir, transform=transform),
+    gallery_datasets,
     batch_size=64, shuffle=False
 )
+
+def get_id(img_path):
+    camera_id = []
+    labels = []
+    for path, v in img_path:
+        filename = os.path.basename(path)
+        label = filename[0:4]
+        camera = filename.split('c')[1]
+        if label[0:2] == '-1':
+            labels.append(-1)
+        else:
+            labels.append(int(label))
+        camera_id.append(int(camera[0]))
+    return camera_id, labels
+
+query_path = query_datasets.imgs
+gallery_path = gallery_datasets.imgs
+query_cam, query_label = get_id(query_path)
+gallery_cam, gallery_label = get_id(gallery_path)
+print(gallery_cam)
 
 # net definition
 net = Net(reid=True)
 assert os.path.isfile(
     "./checkpoint/ckpt.t7"), "Error: no checkpoint file found!"
 print('Loading from checkpoint/ckpt.t7')
-checkpoint = torch.load("./checkpoint/ckpt.t7")
+checkpoint = torch.load("./checkpoint/ckpt.t7", map_location=device)
 net_dict = checkpoint['net_dict']
 net.load_state_dict(net_dict, strict=False)
 net.eval()
@@ -74,7 +97,9 @@ gallery_labels -= 2
 features = {
     "qf": query_features,
     "ql": query_labels,
+    "qc" : query_cam,
     "gf": gallery_features,
-    "gl": gallery_labels
+    "gl": gallery_labels,
+    "gc": gallery_cam
 }
 torch.save(features, "features.pth")
