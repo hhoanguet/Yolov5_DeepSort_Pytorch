@@ -58,9 +58,9 @@ start_epoch = 0
 net = Net(num_classes=num_classes)
 if args.resume:
     assert os.path.isfile(
-        "./checkpoint/ckpt.t7"), "Error: no checkpoint file found!"
-    print('Loading from checkpoint/ckpt.t7')
-    checkpoint = torch.load("./checkpoint/ckpt.t7")
+        "./checkpoint/ckpt-Market1501.t7"), "Error: no checkpoint file found!"
+    print('Loading from checkpoint/ckpt-Market1501.t7')
+    checkpoint = torch.load("./checkpoint/ckpt-Market1501.t7")
     # import ipdb; ipdb.set_trace()
     net_dict = checkpoint['net_dict']
     net.load_state_dict(net_dict)
@@ -144,7 +144,7 @@ def test(epoch):
     acc = 100.*correct/total
     if acc > best_acc:
         best_acc = acc
-        print("Saving parameters to checkpoint/ckpt.t7")
+        print("Saving parameters to checkpoint/ckpt-Market1501.t7")
         checkpoint = {
             'net_dict': net.state_dict(),
             'acc': acc,
@@ -152,7 +152,7 @@ def test(epoch):
         }
         if not os.path.isdir('checkpoint'):
             os.mkdir('checkpoint')
-        torch.save(checkpoint, './checkpoint/ckpt.t7')
+        torch.save(checkpoint, './checkpoint/ckpt-Market1501.t7')
 
     return test_loss/len(testloader), 1. - correct/total
 
